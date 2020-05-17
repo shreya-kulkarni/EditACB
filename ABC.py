@@ -187,17 +187,17 @@ class SecondPage:
         self.ui.listWidget_2.itemClicked.connect(self.sectionClickRemove)
         self.ui.pushButton1.clicked.connect(self.showPrereq)
         self.ui.pushButton.clicked.connect(self.validate)
-        def calculate(s):
-            count=dict()
-            courses=pd.read_excel("Course_List_for_all_students.xls")
-            for i in range(len(courses)):
-                section = courses["Section"][i].split('-')[0]+courses["Section"][i].split('-')[1]
-            count.update({section:int(count.get(section) or 0)+1})
-            for i in range(len(courses)):
-                section = courses["Section"][i].split('-')[0]+courses["Section"][i].split('-')[1]
-                return count.get(s.split('-')[0]+s.split('-')[1])
+        #def calculate(s):
+        #    count=dict()
+        #    courses=pd.read_excel("Course_List_for_all_students.xls")
+        #    for i in range(len(courses)):
+        #        section = courses["Section"][i].split('-')[0]+courses["Section"][i].split('-')[1]
+         #   count.update({section:int(count.get(section) or 0)+1})
+         #   for i in range(len(courses)):
+            #    section = courses["Section"][i].split('-')[0]+courses["Section"][i].split('-')[1]
+           #     return count.get(s.split('-')[0]+s.split('-')[1])
                    
-                self.ui.pushButton_2.clicked.connect(calculate())
+             #   self.ui.pushButton_2.clicked.connect(calculate())
 
         global days, tableWidgetMap
         tableWidgetMap = {}
@@ -248,7 +248,7 @@ class SecondPage:
 
             op = pd.DataFrame(columns=['StudentID', 'StudentName', 'Section', 'ClassNbr'])
             for i in range(self.ui.listWidget_2.count()):
-                courseSection = self.ui.listWidget_2.item(i).text()
+                courseSection = self.ui.listWidget_2.item(i).text().split(':')[0]
                 op.loc[i] = [student_id, student_name, courseSection, self.sectionToClassnbr[courseSection]]
             
             op.to_excel("stu_op#" + student_id + ".xls", index = False)
@@ -294,6 +294,7 @@ class SecondPage:
             if i.split('-')[0] == course:
                 f = True
                 self.ui.listWidget.addItems([i])
+                
         if f == False and count[course] == 0:
             self.ui.listWidget.addItems(["Course not offered this sem"])
 
