@@ -54,7 +54,7 @@ class MainWindow:
         
     #def formPrereq(self):
         preSubject=PREREQ_LIST.col_values(2)
-        Catalog=PREREQ_LIST.col_values(3)
+        preCatalog=PREREQ_LIST.col_values(3)
         preq1_Subject=PREREQ_LIST.col_values(7)
         preq1_catalog=PREREQ_LIST.col_values(8)
         preq2_Subject=PREREQ_LIST.col_values(13)
@@ -67,7 +67,7 @@ class MainWindow:
         #print(preSubject)
         for i in range(len(preSubject)-2):
             course1 = preSubject[i+2].strip(
-            ) + Catalog[i+2].strip()
+            ) + preCatalog[i+2].strip()
             print(preSubject[i+2])
             if str(preq1_Subject[i+2]) == 'nan':
                 continue
@@ -110,3 +110,97 @@ class MainWindow:
             else:
                 isPrereqFor[l].append(course1)
 ########################################################
+class SecondPage:
+
+    def __init__(self):
+        self.main_win = QMainWindow()
+        self.ui = Ui_SecondPage()
+        self.ui.setupUi(self.main_win)
+        self.tableSlotClash = 0
+        if student_id not in courseDict:
+            courseDict[student_id] = ["No pending courses"]
+        #timetable = pd.read_excel(TIME_TABLE)
+        tt_subject=TIME_TABLE.col_values(2)
+        tt_catalog=TIME_TABLE.col_values(3)
+        tt_title=TIME_TABLE.col_values(4)
+        exam_tm_cd=TIME_TABLE.col_values(14)
+        tt_courseID=TIME_TABLE.col_values(1)
+        tt_classNbr=TIME_TABLE.col_values(5)
+        tt_MgStart=TIME_TABLE.col_values(9)
+        tt_endTime=TIME_TABLE.col_values(10)
+        tt_ClassPattern=TIME_TABLE.col_values(8)
+        tt_section=TIME_TABLE.col_values(6)
+
+        global courseDictWithoutName
+        courseDictWithoutName = []  # {CSF241,EEEF241}
+        global courseToSections  # {CSF241: ["M-2","W-2"]}
+        global courseToSectionsNotSelected
+        global exam
+        global count
+        global courseNameForPreq
+        global electives
+        electives = []
+        courseNameForPreq = ""
+        count = {}
+        exam = {}
+        courseToSections = {}
+
+        for i in courseDict[student_id]:
+            courseDictWithoutName.append(i.split('-')[0])  # csf221
+
+        self.ui.listWidget_1.addItems(courseDict[student_id])
+        electives += courseDictWithoutName
+
+        for i in range(len(tt_subject)-1):
+            subject = tt_subject[i+1]
+            catalog = tt_catalog[i+1].strip()
+            title = tt_title[i+1].strip()
+            if (subject + catalog) not in electives:
+                electives.append(subject + catalog)
+                self.ui.listWidget_1.addItems([subject + catalog + "-" + title])
+
+        self.ui.label_2.setText(student_name + " (" + student_id +")")
+
+        for i in electives:
+            count[i] = 0
+
+        for i in range(len(exam_tm_cd)-1):
+            c = tt_subject[i+1] + tt_catalog[i+1].strip()
+            if c in exam or str(exam_tm_cd[i+1]) == 'nan':
+                continue
+            exam[c] = exam_tm_cd[i+1]
+
+        self.sectionToClassnbr = {}
+        for i in range(len(tt_courseID)):
+            c = tt_subject[i+1] + tt_catalog[i+1].strip() + '-' + tt_section[i+1].strip()
+            self.sectionToClassnbr[c] = tt_classNbr[i+1]
+ 
+
+        for i in range(len(tt_courseID)-1):
+            c = tt_catalog[i+1] +tt_catalog[i+1].strip()
+            if c in electives:
+                key = c + '-' + str(tt_section[i+1])
+                if (key not in electives) and (key not in courseToSections):
+                    courseToSections[key] = set()
+                if str(tt_MgStart[i+1]) == 'nan':
+                    continue
+                l = self.giveTime(
+                    tt_MgStart[i+1],
+                    tt_endTime[i+1],
+                    tt_ClassPatternC[i])
+                # print(l)
+                for el in l:
+                    courseToSections[key].add(el)
+
+   
+        # print(courseToSections)
+        courseToSectionsNotSelected = copy.copy(courseToSections)
+        self.ui.pushButton_back.clicked.connect(self.pushButton_click)
+        self.ui.listWidget_1.itemClicked.connect(self.courseClick)
+        self.ui.listWidget.itemClicked.connect(self.sectionClickAdd)
+        self.ui.listWidget_2.itemClicked.connect(self.sectionClickRemove)
+        self.ui.pushButton1.clicked.connect(self.showPrereq)
+        self.ui.pushButton.clicked.connect(self.validate)
+
+
+        
